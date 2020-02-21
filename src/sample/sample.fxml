@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <center>
+      <ImageView fx:id="mainImgView" fitHeight="800.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+   </center>
+   <bottom>
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="loadButton" mnemonicParsing="false" onAction="#buttonPressed" text="Load" />
+            <Button fx:id="greyedButton" mnemonicParsing="false" onAction="#greyImage" text="grey" />
+            <Button fx:id="blurButton" mnemonicParsing="false" onAction="#blurImage" text="blur" />
+            <Button fx:id="threshButton" mnemonicParsing="false" onAction="#threshImage" text="thresh" />
+         </children>
+      </HBox>
+   </bottom>
+</BorderPane>
