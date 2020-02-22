@@ -1,22 +1,27 @@
 package sample;
 
 
+import com.sun.deploy.util.ArrayUtil;
+
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.stream.IntStream;
 
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -24,43 +29,54 @@ public class Controller {
 
     @FXML
     private ImageView mainImgView;
-    @FXML
-    private Button loadButton,greyedButton,blurButton,threshButton;
     Mat picture = Imgcodecs.imread("D:/IntelliJ Workspace/JavaFxAndOpenCV/photos/20200221_161937.jpg");
-    Mat greyedPicture=new Mat();
-    Mat blurredPicture=new Mat();
-    Mat threshedPicture=new Mat();
+    Mat greyedPicture = new Mat();
+    Mat blurredPicture = new Mat();
+    Mat threshedPicture = new Mat();
+    Mat hier = new Mat();
 
 
 
-
-
-
-
-    public void buttonPressed() throws IOException {
+    public void buttonPressed() {
         System.out.println("button pressed");
 
         Image theFuckingImage = mat2Image(picture);
 
-
-
-
-        if (mainImgView == null)
-            System.out.println("mainImgview is null");
-        if (theFuckingImage == null)
-            System.out.println("fuckin image is null");
-        if (picture == null)
-            System.out.println("mat is null");
-
-
         mainImgView.setImage(theFuckingImage);
-        
-        double[] pixel = greyedPicture.get(greyedPicture.rows()/2, greyedPicture.cols()/100);
-        //System.out.println(greyedPicture.cols() + " * " + greyedPicture.rows());
-
 
 
     }
+
+    public void findContours() {
+        Mat imageWithContours = picture.clone();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(threshedPicture, contours, hier,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE );
+        //Imgproc.drawContours(imageWithContours,contours, -1, new Scalar(0,255,0),3 );
+        //loadMat(imageWithContours);
+        System.out.println("number of contours: " + contours.size());
+        if (contours.size()==0)
+            return;
+
+        System.out.println("hier["+hier.rows()+"]["+hier.cols()+"]");
+
+        /**
+         * Create a new indexes list and sort it by the area of each contour in the contours list.
+         * From largest to smallest. later on will be used to find contour hierarchy based on his index.
+         */
+        List<Integer> sort_index=new ArrayList<>();
+        for (int i=0; i<contours.size();i++)
+            sort_index.add(i);
+
+        sort_index.sort((c1,c2) -> {
+            if (Imgproc.contourArea(contours.get(c1)) == Imgproc.contourArea(contours.get(c2)) )
+                return 0;
+            return Imgproc.contourArea(contours.get(c1)) > Imgproc.contourArea(contours.get(c2)) ? -1:1;
+        });
+
+
+    }
+
+
 
     public void greyImage(){
         Imgproc.cvtColor(picture, greyedPicture,Imgproc.COLOR_BGR2GRAY);
@@ -71,11 +87,10 @@ public class Controller {
         Imgproc.GaussianBlur(greyedPicture,blurredPicture,new Size(45,45),0);
         loadMat(blurredPicture);
     }
-
+    //TODO: make the thresh value more adaptive.
     public void threshImage(){
-        double[] pixel = greyedPicture.get(greyedPicture.rows()/2, greyedPicture.cols()/100);
-        //Imgproc.threshold(blurredPicture,threshedPicture,0, 255, Imgproc.THRESH_BINARY);
-        Imgproc.adaptiveThreshold(blurredPicture,threshedPicture,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,25,2);
+        //Imgproc.adaptiveThreshold(blurredPicture,threshedPicture,255,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,25,2);
+        Imgproc.threshold(blurredPicture,threshedPicture,150,255,Imgproc.THRESH_BINARY);
         loadMat(threshedPicture);
     }
 
