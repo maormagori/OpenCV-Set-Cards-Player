@@ -1,10 +1,11 @@
 package sample;
 
 
-import com.sun.deploy.util.ArrayUtil;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -13,11 +14,7 @@ import org.opencv.imgproc.Imgproc;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Dictionary;
 import java.util.List;
-import java.util.stream.IntStream;
 
 
 import javafx.embed.swing.SwingFXUtils;
@@ -29,7 +26,7 @@ public class Controller {
 
     @FXML
     private ImageView mainImgView;
-    Mat picture = Imgcodecs.imread("D:/IntelliJ Workspace/JavaFxAndOpenCV/photos/20200221_161937.jpg");
+    Mat picture = Imgcodecs.imread("D:/IntelliJ Workspace/JavaFxAndOpenCV/photos/20200221_162013.jpg");
     Mat greyedPicture = new Mat();
     Mat blurredPicture = new Mat();
     Mat threshedPicture = new Mat();
@@ -47,17 +44,20 @@ public class Controller {
 
     }
 
-    public void findContours() {
+    public void findCardsContours() {
         Mat imageWithContours = picture.clone();
         List<MatOfPoint> contours = new ArrayList<>();
+        List<MatOfPoint> cardContours = new ArrayList<>();
+
+
+        /**
+         * First we find all of the contours in the threshed picture and store the in a List.
+         * if there are no contours we don't do anything.
+         */
         Imgproc.findContours(threshedPicture, contours, hier,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE );
-        //Imgproc.drawContours(imageWithContours,contours, -1, new Scalar(0,255,0),3 );
-        //loadMat(imageWithContours);
         System.out.println("number of contours: " + contours.size());
         if (contours.size()==0)
             return;
-
-        System.out.println("hier["+hier.rows()+"]["+hier.cols()+"]");
 
         /**
          * Create a new indexes list and sort it by the area of each contour in the contours list.
@@ -72,6 +72,23 @@ public class Controller {
                 return 0;
             return Imgproc.contourArea(contours.get(c1)) > Imgproc.contourArea(contours.get(c2)) ? -1:1;
         });
+
+        MatOfPoint2f temp = new MatOfPoint2f();
+        MatOfPoint2f approxCurve = new MatOfPoint2f();
+
+        for (Integer i :
+                sort_index) {
+            //double size = Imgproc.contourArea(contours.get(i));
+            contours.get(i).convertTo(temp, CvType.CV_32F);
+            double peri = Imgproc.arcLength(temp,true);
+            Imgproc.approxPolyDP(temp,approxCurve,0.01*peri,true);
+
+            if (hier.get(0,i)[3] == -1 && approxCurve.toList().size() == 4)
+                cardContours.add(contours.get(i));
+        }
+
+        Imgproc.drawContours(imageWithContours,cardContours, -1, new Scalar(0,255,0),15 );
+        loadMat(imageWithContours);
 
 
     }
