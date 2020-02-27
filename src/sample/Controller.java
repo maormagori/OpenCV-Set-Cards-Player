@@ -26,7 +26,7 @@ public class Controller {
 
     @FXML
     private ImageView mainImgView;
-    Mat picture = Imgcodecs.imread("D:/IntelliJ Workspace/JavaFxAndOpenCV/photos/20200221_162013.jpg");
+    Mat picture = Imgcodecs.imread("D:/IntelliJ Workspace/JavaFxAndOpenCV/photos/20200221_161937.jpg");
     Mat greyedPicture = new Mat();
     Mat blurredPicture = new Mat();
     Mat threshedPicture = new Mat();
@@ -35,6 +35,7 @@ public class Controller {
 
 
     public void buttonPressed() {
+        //System.out.println(this.getClass().getResource("/JavaFxAndOpenCV/photos/20200221_162013.jpg").getPath());
         System.out.println("button pressed");
 
         Image theFuckingImage = mat2Image(picture);
@@ -44,7 +45,7 @@ public class Controller {
 
     }
 
-    public void findCardsContours() {
+    public List<MatOfPoint> findCardsContours() {
         Mat imageWithContours = picture.clone();
         List<MatOfPoint> contours = new ArrayList<>();
         List<MatOfPoint> cardContours = new ArrayList<>();
@@ -57,7 +58,7 @@ public class Controller {
         Imgproc.findContours(threshedPicture, contours, hier,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE );
         System.out.println("number of contours: " + contours.size());
         if (contours.size()==0)
-            return;
+            return null;
 
         /**
          * Create a new indexes list and sort it by the area of each contour in the contours list.
@@ -90,6 +91,7 @@ public class Controller {
         Imgproc.drawContours(imageWithContours,cardContours, -1, new Scalar(0,255,0),15 );
         loadMat(imageWithContours);
 
+        return cardContours;
 
     }
 
