@@ -3,6 +3,9 @@ package sample;
 
 
 import com.sun.deploy.util.ArrayUtil;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.opencv.core.*;
 import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -11,6 +14,7 @@ import org.opencv.imgproc.Imgproc;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -24,7 +28,11 @@ public class Controller {
 
     @FXML
     private ImageView mainImgView, rightImage;
-    Mat picture = Imgcodecs.imread("C:/Users/Maor/IdeaProjects/OpenCV_Testing/photos/20200221_161817.jpg");
+    @FXML
+    private BorderPane borderpane;
+
+    private Stage stage;
+    Mat picture;
     Mat greyedPicture = new Mat();
     Mat blurredPicture = new Mat();
     Mat threshedPicture = new Mat();
@@ -33,14 +41,28 @@ public class Controller {
 
 
     public void buttonPressed() {
-        //System.out.println(this.getClass().getResource("/JavaFxAndOpenCV/photos/20200221_162013.jpg").getPath());
         System.out.println("button pressed");
-
+        stage =  (Stage) borderpane.getScene().getWindow();
+        File image = new FileChooser().showOpenDialog(stage);
+        String path = flipSlash(image.getAbsolutePath());
+        picture = Imgcodecs.imread(path);
         Image theFuckingImage = mat2Image(picture);
 
         mainImgView.setImage(theFuckingImage);
 
 
+    }
+
+    private String flipSlash(String absolutePath) {
+        String path= new String();
+        for (char c :
+                absolutePath.toCharArray()) {
+            if (c=='\\')
+                path+='/';
+            else
+                path+=c;
+        }
+        return  path;
     }
 
     public List<MatOfPoint> findCardsContours() {
@@ -78,13 +100,16 @@ public class Controller {
 
         for (Integer i :
                 sort_index) {
-            //double size = Imgproc.contourArea(contours.get(i));
             contours.get(i).convertTo(temp, CvType.CV_32F);
             double peri = Imgproc.arcLength(temp,true);
             Imgproc.approxPolyDP(temp,approxCurve,0.01*peri,true);
 
-            if (hier.get(0,i)[3] == -1 && approxCurve.toList().size() == 4)
+
+            if (hier.get(0,i)[3] == -1 && approxCurve.toList().size() == 4) {
                 cardContours.add(contours.get(i));
+                if (cardContours.size()==1)
+                    flattner(picture,approxCurve.toList(),Imgproc.boundingRect(cardContours.get(0)).width,Imgproc.boundingRect(cardContours.get(0)).height);
+            }
         }
 
         Imgproc.drawContours(imageWithContours,cardContours, -1, new Scalar(0,255,0),15 );
@@ -190,7 +215,37 @@ public class Controller {
         Mat M = Imgproc.getPerspectiveTransform(tempRect,dst);
         Imgproc.warpPerspective(image,cardImage,M,new Size(newWidth,newHeight));
         Imgproc.cvtColor(cardImage,cardImage,Imgproc.COLOR_BGR2GRAY);
+        rightImage.setImage(mat2Image(cardImage));
 
+
+        /**
+         * This point forward was only used to make the Threshed Symbols. will delete in the next Commit.
+         * Only Symbol missing is ellipse full, since somehow the card has 5 corners.
+         */
+        Mat thereshedCard = new Mat();
+        double bkglevel = Math.max(cardImage.get(10,newWidth/2)[0],cardImage.get(290,newWidth/2)[0]);
+        Imgproc.threshold(cardImage,thereshedCard,bkglevel-60,255,Imgproc.THRESH_BINARY_INV);
+
+        //Imgproc.threshold(cardImage,thereshedCard,1,255,Imgproc.THRESH_OTSU|Imgproc.THRESH_BINARY_INV);
+
+        List<MatOfPoint> contoursInCard = new ArrayList();
+        List<MatOfPoint> symbolsInCard = new ArrayList<>();
+        Mat hierInCard = new Mat();
+        Imgproc.findContours(thereshedCard,contoursInCard,hierInCard,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0;i<contoursInCard.size();i++) {
+            Rect boundingRect=Imgproc.boundingRect(contoursInCard.get(i));
+            if (hierInCard.get(0, i)[3] == -1 && boundingRect.width>=newWidth/2)
+                symbolsInCard.add(contoursInCard.get(i));
+        }
+        System.out.println("symbols in card: " + symbolsInCard.size());
+        rightImage.setImage(mat2Image(thereshedCard));
+        Scanner s=new Scanner(System.in);
+        if (symbolsInCard.size() == 1){
+            System.out.println("name:");
+            String name = s.nextLine();
+            Imgcodecs.imwrite("C:/Users/Maor/IdeaProjects/OpenCV_Testing/photos/ThreshedSymbols/"+name+".jpg",new Mat(thereshedCard,Imgproc.boundingRect(symbolsInCard.get(0))));
+        }
+        else System.out.println("too many symbols");
 
         return cardImage;
 

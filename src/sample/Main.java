@@ -16,6 +16,7 @@ public class Main extends Application {
         primaryStage.setTitle("Opencv Testing Area");
         primaryStage.setScene(new Scene(root, 1200, 800));
         primaryStage.show();
+
     }
 
 
