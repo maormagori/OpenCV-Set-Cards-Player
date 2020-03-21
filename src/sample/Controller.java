@@ -3,6 +3,7 @@ package sample;
 
 
 import com.sun.deploy.util.ArrayUtil;
+import javafx.event.ActionEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -15,6 +16,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -37,9 +39,29 @@ public class Controller {
     Mat blurredPicture = new Mat();
     Mat threshedPicture = new Mat();
     Mat hier = new Mat();
-    Dictionary<String, Mat> ThreshedSymbols;
+    Map<String, Mat> threshedSymbols;
+    List<MatOfPoint> cardContours = new ArrayList<>();
 
 
+    public void initialize() throws IOException {
+        threshedSymbols = new HashMap<String, Mat>();
+
+        String programDir = new File(".").getCanonicalPath();
+        System.out.println("Program dir: " + programDir);
+
+        /**
+         * intilize threshed symbols for later use.
+         */
+        File symbolsDir = new File(programDir+ "\\photos\\ThreshedSymbols\\");
+        File[] symbols = symbolsDir.listFiles();
+        for (File symbol :
+                symbols) {
+            threshedSymbols.put(symbol.getName().split("[.]")[0]
+                    ,Imgcodecs.imread(flipSlash(symbol.getAbsolutePath())));
+        }
+
+
+    }
 
     public void buttonPressed() {
         System.out.println("button pressed");
@@ -69,7 +91,6 @@ public class Controller {
     public List<MatOfPoint> findCardsContours() {
         Mat imageWithContours = picture.clone();
         List<MatOfPoint> contours = new ArrayList<>();
-        List<MatOfPoint> cardContours = new ArrayList<>();
 
 
         /**
@@ -161,7 +182,10 @@ public class Controller {
         else
             finalCard.setAmount(symbolsInCard.size());
 
-
+        int[] symbolAndFilling = matchCard(symbolsInCard.get(0));
+        finalCard.setShape(symbolAndFilling[0]);
+        finalCard.setFilling(symbolAndFilling[1]);
+         return finalCard;
 
     }
 
@@ -175,10 +199,42 @@ public class Controller {
         /**
          * The symbol with the least diff is returned as the card's symbol.
          */
-        String bestSymbolDiffName;
-        int bestSymbolName = Integer.MAX_VALUE;
+        String bestSymbolDiffName = "";
+        long bestSymbolDiff = Integer.MAX_VALUE;
+        long diff;
+        Mat dst = new Mat();
+        int[] results= new int[2];
 
-        Core.absdiff();
+        for (Map.Entry<String, Mat> entry :
+                threshedSymbols.entrySet()) {
+            Core.absdiff(symbol,entry.getValue(),dst);
+            diff = matSum(dst) / 255;
+            if (diff<bestSymbolDiff){
+                bestSymbolDiff = diff;
+                bestSymbolDiffName = entry.getKey();
+            }
+        }
+
+        String[] symbolAndFilling = bestSymbolDiffName.split("_");
+        switch (symbolAndFilling[0]){
+            case "Diamond": results[0] = Card.Shape.DIAMOND;
+                break;
+            case "Ellipse": results[0] = Card.Shape.ELLIPSE;
+                break;
+            case "Wave": results[0] = Card.Shape.WAVE;
+                break;
+        }
+
+        switch (symbolAndFilling[1]){
+            case "Full": results[1] = Card.Filling.FULL;
+                break;
+            case "Hollow": results[1] = Card.Filling.HOLLOW;
+                break;
+            case "Striped": results[1] = Card.Filling.STRIPED;
+                break;
+        }
+
+        return results;
     }
 
     /**
@@ -386,4 +442,23 @@ public class Controller {
         return SwingFXUtils.toFXImage(image, null);
     }
 
+    /**
+     * given a threshed image, the methos returns the sum of all the pixels.
+     * @param mat
+     * @return
+     */
+    public long matSum(Mat mat){
+        long sum = 0;
+        for(int i=0; i<mat.size().height; i++)
+            for (int j=0; j<mat.size().width; j++)
+                sum +=mat.get(i,j)[0];
+        return sum;
+    }
+
+    public void processContours(ActionEvent actionEvent) {
+        for (MatOfPoint card :
+                cardContours) {
+            processCardContour(card).toString();
+        }
+    }
 }

@@ -52,15 +52,26 @@ public class Card {
         this.contour = contour;
     }
 
-    public final class Color {
-        public final int RED = 1, GREEN = 2, PURPLE = 3;
+    @Override
+    public String toString() {
+        System.out.println("Card attributes:");
+        System.out.println("\namount: " + amount);
+        System.out.println("\nshape: " + shape);
+        System.out.println("\nfilling: " + filling);
+        System.out.println("\ncolor: " + color);
+        return String.format("Card attributes:\namount: {0}\nshape: {1}\nfilling: {2}\ncolor: {3}",
+                amount,shape,filling,color);
     }
 
-    public final class Shape {
-        public final int ELLIPSE = 1, WAVE = 2, DIAMOND = 3;
+    public static class Color {
+        public static int RED = 1, GREEN = 2, PURPLE = 3;
     }
 
-    public final class FILLING {
-        public final int FULL = 1, HOLLOW = 2, STRIPED = 3;
+    public static class Shape {
+        public static int ELLIPSE = 1, WAVE = 2, DIAMOND = 3;
+    }
+
+    public static class Filling {
+        public static int FULL = 1, HOLLOW = 2, STRIPED = 3;
     }
 }
