@@ -37,6 +37,7 @@ public class Controller {
     Mat blurredPicture = new Mat();
     Mat threshedPicture = new Mat();
     Mat hier = new Mat();
+    Dictionary<String, Mat> ThreshedSymbols;
 
 
 
@@ -106,9 +107,13 @@ public class Controller {
 
 
             if (hier.get(0,i)[3] == -1 && approxCurve.toList().size() == 4) {
+                System.out.println("Added a new card!");
                 cardContours.add(contours.get(i));
+
+                /* Was used to create Threshed Symbols folder.
                 if (cardContours.size()==1)
                     flattner(picture,approxCurve.toList(),Imgproc.boundingRect(cardContours.get(0)).width,Imgproc.boundingRect(cardContours.get(0)).height);
+                 */
             }
         }
 
@@ -121,18 +126,95 @@ public class Controller {
 
     }
 
-    /*public Card processCardsContours(List<MatOfPoint> cardContours){
+    public Card processCardContour(MatOfPoint cardContour){
         double peri;
-        MatOfPoint2f approxCurve;
-        Point[] conerPoints;
+        MatOfPoint2f approxCurve = new MatOfPoint2f(), cardContour2f=new MatOfPoint2f();
+        List<Point> cornerPoints;
+        int width, height;
         Point center;
         Mat wrap;
+        Card finalCard = new Card(cardContour);
+        List<MatOfPoint> symbolsInCard;
 
-        for (MatOfPoint cardContour:
-             cardContours) {
-            
+        cardContour.convertTo(cardContour2f,CvType.CV_32F);
+        peri = Imgproc.arcLength(cardContour2f,true);
+        Imgproc.approxPolyDP(cardContour2f,approxCurve,0.01*peri,true);
+
+        cornerPoints = approxCurve.toList();
+        width = Imgproc.boundingRect(cardContour).width;
+        height = Imgproc.boundingRect(cardContour).height;
+
+        double xSum=0,ySum=0;
+        for (Point p :
+                cornerPoints) {
+            xSum+=p.x;
+            ySum+=p.y;
         }
-    }*/
+        center = new Point(xSum/4,ySum/4);
+
+        wrap = flattner(picture,cornerPoints,width,height);
+
+        symbolsInCard = findSymbolsInCard(wrap);
+
+        if (symbolsInCard.size()>3)
+            System.out.println("Too many symbols in a card!");
+        else
+            finalCard.setAmount(symbolsInCard.size());
+
+
+
+    }
+
+    /**
+     * Compares the first symbol in the card to the saved, threshed symbols and returns an int
+     * array in which the first value is the shape and the second one is the filling.
+     * @param symbol
+     * @return
+     */
+    public int[] matchCard(MatOfPoint symbol){
+        /**
+         * The symbol with the least diff is returned as the card's symbol.
+         */
+        String bestSymbolDiffName;
+        int bestSymbolName = Integer.MAX_VALUE;
+
+        Core.absdiff();
+    }
+
+    /**
+     * This is method is used to find The game symbols in the card.
+     * @param wrap
+     * @return
+     */
+    public List<MatOfPoint> findSymbolsInCard (Mat wrap){
+        Mat thereshedCard = new Mat();
+        Mat greyCard =new Mat();
+        Imgproc.cvtColor(wrap,greyCard,Imgproc.COLOR_BGR2GRAY);
+        double bkglevel = Math.max(wrap.get(10,200/2)[0],wrap.get(290,200/2)[0]);
+
+        /**May use this method in the future.
+        *Imgproc.threshold(cardImage,thereshedCard,1,255,Imgproc.THRESH_OTSU|Imgproc.THRESH_BINARY_INV);
+        **/
+        Imgproc.threshold(greyCard,thereshedCard,bkglevel-60,255,Imgproc.THRESH_BINARY_INV);
+
+        List<MatOfPoint> contoursInCard = new ArrayList();
+        List<MatOfPoint> symbolsInCard = new ArrayList<>();
+        Mat hierInCard = new Mat();
+        Imgproc.findContours(thereshedCard,contoursInCard,hierInCard,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE);
+        for (int i = 0;i<contoursInCard.size();i++) {
+            Rect boundingRect=Imgproc.boundingRect(contoursInCard.get(i));
+
+            //As of right now a symbol is added if his contour has no parent and his width is larger than
+            //half the card's width.
+            if (hierInCard.get(0, i)[3] == -1 && boundingRect.width>=200/2)
+                symbolsInCard.add(contoursInCard.get(i));
+        }
+        System.out.println("symbols in card: " + symbolsInCard.size());
+        rightImage.setImage(mat2Image(thereshedCard));
+
+        return symbolsInCard;
+
+    }
 
     /**
      * Flattens an image of a card into a top-down 200x300 perspective.
@@ -214,14 +296,16 @@ public class Controller {
                 ,new Point(newWidth,0));
         Mat M = Imgproc.getPerspectiveTransform(tempRect,dst);
         Imgproc.warpPerspective(image,cardImage,M,new Size(newWidth,newHeight));
-        Imgproc.cvtColor(cardImage,cardImage,Imgproc.COLOR_BGR2GRAY);
         rightImage.setImage(mat2Image(cardImage));
 
 
         /**
          * This point forward was only used to make the Threshed Symbols. will delete in the next Commit.
          * Only Symbol missing is ellipse full, since somehow the card has 5 corners.
+         *
+         * Made the the threshed Symbols folder. leaving this here for future usage.
          */
+        /*
         Mat thereshedCard = new Mat();
         double bkglevel = Math.max(cardImage.get(10,newWidth/2)[0],cardImage.get(290,newWidth/2)[0]);
         Imgproc.threshold(cardImage,thereshedCard,bkglevel-60,255,Imgproc.THRESH_BINARY_INV);
@@ -246,6 +330,7 @@ public class Controller {
             Imgcodecs.imwrite("C:/Users/Maor/IdeaProjects/OpenCV_Testing/photos/ThreshedSymbols/"+name+".jpg",new Mat(thereshedCard,Imgproc.boundingRect(symbolsInCard.get(0))));
         }
         else System.out.println("too many symbols");
+         */
 
         return cardImage;
 
@@ -258,7 +343,7 @@ public class Controller {
     }
 
     public void blurImage() {
-        Imgproc.GaussianBlur(greyedPicture,blurredPicture,new Size(45,45),0);
+        Imgproc.GaussianBlur(greyedPicture,blurredPicture,new Size(55,55),0);
         loadMat(blurredPicture);
     }
     //TODO: make the thresh value more adaptive.

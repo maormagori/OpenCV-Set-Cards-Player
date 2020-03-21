@@ -3,13 +3,52 @@ package sample;
 import org.opencv.core.MatOfPoint;
 
 public class Card {
-    private int color, shape, filling;
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public int getShape() {
+        return shape;
+    }
+
+    public void setShape(int shape) {
+        this.shape = shape;
+    }
+
+    public int getFilling() {
+        return filling;
+    }
+
+    public void setFilling(int filling) {
+        this.filling = filling;
+    }
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    private int color;
+    private int shape;
+    private int filling;
+    private int amount;
     private MatOfPoint contour;
 
-    public Card(int c,int s, int f, MatOfPoint contour){
+    public Card(int c,int s, int f, int a, MatOfPoint contour){
         color = c;
         shape = s;
         filling = f;
+        amount=a;
+        this.contour = contour;
+    }
+
+    public Card(MatOfPoint contour){
         this.contour = contour;
     }
 
