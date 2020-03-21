@@ -3,27 +3,27 @@ package sample;
 import org.opencv.core.MatOfPoint;
 
 public class Card {
-    public int getColor() {
+    public String getColor() {
         return color;
     }
 
-    public void setColor(int color) {
+    public void setColor(String color) {
         this.color = color;
     }
 
-    public int getShape() {
+    public String getShape() {
         return shape;
     }
 
-    public void setShape(int shape) {
+    public void setShape(String shape) {
         this.shape = shape;
     }
 
-    public int getFilling() {
+    public String getFilling() {
         return filling;
     }
 
-    public void setFilling(int filling) {
+    public void setFilling(String filling) {
         this.filling = filling;
     }
     public void setAmount(int amount) {
@@ -34,13 +34,13 @@ public class Card {
         return amount;
     }
 
-    private int color;
-    private int shape;
-    private int filling;
+    private String color = "Unknown";
+    private String shape = "Unknown";
+    private String filling = "Unknown";
     private int amount;
     private MatOfPoint contour;
 
-    public Card(int c,int s, int f, int a, MatOfPoint contour){
+    public Card(String c, String s, String f, int a, MatOfPoint contour){
         color = c;
         shape = s;
         filling = f;
@@ -54,24 +54,21 @@ public class Card {
 
     @Override
     public String toString() {
-        System.out.println("Card attributes:");
-        System.out.println("\namount: " + amount);
-        System.out.println("\nshape: " + shape);
-        System.out.println("\nfilling: " + filling);
-        System.out.println("\ncolor: " + color);
-        return String.format("Card attributes:\namount: {0}\nshape: {1}\nfilling: {2}\ncolor: {3}",
+        return String.format("Card attributes:\namount: %d \nshape: %s \nfilling: %s \ncolor: %s",
                 amount,shape,filling,color);
     }
 
+
+    //Still not sure how and where to use these.
     public static class Color {
-        public static int RED = 1, GREEN = 2, PURPLE = 3;
+        public static String RED = "Red",GREEN = "Green",PURPLE = "Purple";
     }
 
     public static class Shape {
-        public static int ELLIPSE = 1, WAVE = 2, DIAMOND = 3;
+        public static String ELLIPSE = "Ellipse", WAVE = "Wave", DIAMOND = "Diamond";
     }
 
     public static class Filling {
-        public static int FULL = 1, HOLLOW = 2, STRIPED = 3;
+        public static String FULL = "Full", HOLLOW = "Hollow", STRIPED = "Striped";
     }
 }

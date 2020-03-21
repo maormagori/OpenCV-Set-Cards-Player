@@ -2,7 +2,6 @@ package sample;
 
 
 
-import com.sun.deploy.util.ArrayUtil;
 import javafx.event.ActionEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
@@ -12,7 +11,6 @@ import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -185,10 +183,10 @@ public class Controller {
         else
             finalCard.setAmount(symbolsInCard.size());
 
-        int[] symbolAndFilling = matchCard(symbolsInCard.get(0));
+        String[] symbolAndFilling = matchCard(symbolsInCard.get(0));
         finalCard.setShape(symbolAndFilling[0]);
         finalCard.setFilling(symbolAndFilling[1]);
-         return finalCard;
+        return finalCard;
 
     }
 
@@ -198,7 +196,7 @@ public class Controller {
      * @param symbol
      * @return
      */
-    public int[] matchCard(Mat symbol){
+    public String[] matchCard(Mat symbol){
         /**
          * The symbol with the least diff is returned as the card's symbol.
          */
@@ -206,7 +204,7 @@ public class Controller {
         long bestSymbolDiff = Integer.MAX_VALUE;
         long diff;
         Mat dst = new Mat();
-        int[] results= new int[2];
+        String[] results= new String[2];
 
 
         Imgproc.resize(symbol, symbol,new Size(SYMBOL_WIDTH,SYMBOL_HEIGHT));
@@ -221,23 +219,6 @@ public class Controller {
         }
 
         String[] symbolAndFilling = bestSymbolDiffName.split("_");
-        switch (symbolAndFilling[0]){
-            case "Diamond": results[0] = Card.Shape.DIAMOND;
-                break;
-            case "Ellipse": results[0] = Card.Shape.ELLIPSE;
-                break;
-            case "Wave": results[0] = Card.Shape.WAVE;
-                break;
-        }
-
-        switch (symbolAndFilling[1]){
-            case "Full": results[1] = Card.Filling.FULL;
-                break;
-            case "Hollow": results[1] = Card.Filling.HOLLOW;
-                break;
-            case "Striped": results[1] = Card.Filling.STRIPED;
-                break;
-        }
 
         return results;
     }
@@ -463,7 +444,7 @@ public class Controller {
     public void processContours(ActionEvent actionEvent) {
         for (MatOfPoint card :
                 cardContours) {
-            processCardContour(card).toString();
+            System.out.println(processCardContour(card).toString());
         }
     }
 }
