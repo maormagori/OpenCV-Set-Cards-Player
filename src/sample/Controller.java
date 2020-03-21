@@ -3,6 +3,7 @@ package sample;
 
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -11,6 +12,7 @@ import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -30,6 +32,8 @@ public class Controller {
     private ImageView mainImgView, rightImage;
     @FXML
     private BorderPane borderpane;
+    @FXML
+    private Label cardInfo;
 
     private Stage stage;
     Mat picture;
@@ -90,6 +94,7 @@ public class Controller {
     }
 
     public List<MatOfPoint> findCardsContours() {
+        cardContours.clear();
         Mat imageWithContours = picture.clone();
         List<MatOfPoint> contours = new ArrayList<>();
 
@@ -204,7 +209,6 @@ public class Controller {
         long bestSymbolDiff = Integer.MAX_VALUE;
         long diff;
         Mat dst = new Mat();
-        String[] results= new String[2];
 
 
         Imgproc.resize(symbol, symbol,new Size(SYMBOL_WIDTH,SYMBOL_HEIGHT));
@@ -218,9 +222,8 @@ public class Controller {
             }
         }
 
-        String[] symbolAndFilling = bestSymbolDiffName.split("_");
+        return bestSymbolDiffName.split("_");
 
-        return results;
     }
 
     /**
@@ -444,7 +447,7 @@ public class Controller {
     public void processContours(ActionEvent actionEvent) {
         for (MatOfPoint card :
                 cardContours) {
-            System.out.println(processCardContour(card).toString());
+            cardInfo.setText(processCardContour(card).toString());
         }
     }
 }
