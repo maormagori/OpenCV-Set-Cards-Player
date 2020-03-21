@@ -42,6 +42,9 @@ public class Controller {
     Map<String, Mat> threshedSymbols;
     List<MatOfPoint> cardContours = new ArrayList<>();
 
+    final int SYMBOL_WIDTH = 140;
+    final int SYMBOL_HEIGHT = 65;
+
 
     public void initialize() throws IOException {
         threshedSymbols = new HashMap<String, Mat>();
@@ -57,7 +60,7 @@ public class Controller {
         for (File symbol :
                 symbols) {
             threshedSymbols.put(symbol.getName().split("[.]")[0]
-                    ,Imgcodecs.imread(flipSlash(symbol.getAbsolutePath())));
+                    ,Imgcodecs.imread(flipSlash(symbol.getAbsolutePath()),Imgcodecs.IMREAD_GRAYSCALE));
         }
 
 
@@ -155,7 +158,7 @@ public class Controller {
         Point center;
         Mat wrap;
         Card finalCard = new Card(cardContour);
-        List<MatOfPoint> symbolsInCard;
+        List<Mat> symbolsInCard;
 
         cardContour.convertTo(cardContour2f,CvType.CV_32F);
         peri = Imgproc.arcLength(cardContour2f,true);
@@ -195,7 +198,7 @@ public class Controller {
      * @param symbol
      * @return
      */
-    public int[] matchCard(MatOfPoint symbol){
+    public int[] matchCard(Mat symbol){
         /**
          * The symbol with the least diff is returned as the card's symbol.
          */
@@ -205,6 +208,8 @@ public class Controller {
         Mat dst = new Mat();
         int[] results= new int[2];
 
+
+        Imgproc.resize(symbol, symbol,new Size(SYMBOL_WIDTH,SYMBOL_HEIGHT));
         for (Map.Entry<String, Mat> entry :
                 threshedSymbols.entrySet()) {
             Core.absdiff(symbol,entry.getValue(),dst);
@@ -242,31 +247,31 @@ public class Controller {
      * @param wrap
      * @return
      */
-    public List<MatOfPoint> findSymbolsInCard (Mat wrap){
-        Mat thereshedCard = new Mat();
+    public List<Mat> findSymbolsInCard (Mat wrap){
+        Mat threshedCard = new Mat();
         Mat greyCard =new Mat();
         Imgproc.cvtColor(wrap,greyCard,Imgproc.COLOR_BGR2GRAY);
         double bkglevel = Math.max(wrap.get(10,200/2)[0],wrap.get(290,200/2)[0]);
 
         /**May use this method in the future.
-        *Imgproc.threshold(cardImage,thereshedCard,1,255,Imgproc.THRESH_OTSU|Imgproc.THRESH_BINARY_INV);
+        *Imgproc.threshold(cardImage,threshedCard,1,255,Imgproc.THRESH_OTSU|Imgproc.THRESH_BINARY_INV);
         **/
-        Imgproc.threshold(greyCard,thereshedCard,bkglevel-60,255,Imgproc.THRESH_BINARY_INV);
+        Imgproc.threshold(greyCard,threshedCard,bkglevel-60,255,Imgproc.THRESH_BINARY_INV);
 
         List<MatOfPoint> contoursInCard = new ArrayList();
-        List<MatOfPoint> symbolsInCard = new ArrayList<>();
+        List<Mat> symbolsInCard = new ArrayList<>();
         Mat hierInCard = new Mat();
-        Imgproc.findContours(thereshedCard,contoursInCard,hierInCard,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(threshedCard,contoursInCard,hierInCard,Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE);
         for (int i = 0;i<contoursInCard.size();i++) {
             Rect boundingRect=Imgproc.boundingRect(contoursInCard.get(i));
 
             //As of right now a symbol is added if his contour has no parent and his width is larger than
             //half the card's width.
             if (hierInCard.get(0, i)[3] == -1 && boundingRect.width>=200/2)
-                symbolsInCard.add(contoursInCard.get(i));
+                symbolsInCard.add(new Mat(threshedCard,boundingRect));
         }
         System.out.println("symbols in card: " + symbolsInCard.size());
-        rightImage.setImage(mat2Image(thereshedCard));
+        rightImage.setImage(mat2Image(threshedCard));
 
         return symbolsInCard;
 
