@@ -12,7 +12,6 @@ import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -72,6 +71,8 @@ public class Controller {
         System.out.println("button pressed");
         stage =  (Stage) borderpane.getScene().getWindow();
         File image = new FileChooser().showOpenDialog(stage);
+        if (image == null)
+            return;
         String path = flipSlash(image.getAbsolutePath());
         picture = Imgcodecs.imread(path);
         Image theFuckingImage = mat2Image(picture);
@@ -132,8 +133,10 @@ public class Controller {
             double peri = Imgproc.arcLength(temp,true);
             Imgproc.approxPolyDP(temp,approxCurve,0.01*peri,true);
 
-
-            if (hier.get(0,i)[3] == -1 && approxCurve.toList().size() == 4) {
+            //I'm allowing 5 corners for now. The problem is that the card's rounded corners are
+            //seen as a line for approxPolyDP but for some a reason it's only one of the corners.
+            //TODO: Fix the problem with the rounded corners.
+            if (hier.get(0,i)[3] == -1 && (approxCurve.toList().size() == 4 || approxCurve.toList().size() == 5)) {
                 System.out.println("Added a new card!");
                 cardContours.add(contours.get(i));
 
@@ -142,9 +145,12 @@ public class Controller {
                     flattner(picture,approxCurve.toList(),Imgproc.boundingRect(cardContours.get(0)).width,Imgproc.boundingRect(cardContours.get(0)).height);
                  */
             }
+            else
+                System.out.println("Not a card! approxCurve: "+ approxCurve.toList().size());
+
         }
 
-        Imgproc.drawContours(imageWithContours,cardContours, -1, new Scalar(0,255,0),15 );
+        Imgproc.drawContours(imageWithContours,cardContours, -1, new Scalar(255,0,0),15 );
         loadMat(imageWithContours);
 
 
@@ -188,9 +194,10 @@ public class Controller {
         else
             finalCard.setAmount(symbolsInCard.size());
 
-        String[] symbolAndFilling = matchCard(symbolsInCard.get(0));
+        String[] symbolAndFilling = matchCardSymbol(symbolsInCard.get(0));
         finalCard.setShape(symbolAndFilling[0]);
         finalCard.setFilling(symbolAndFilling[1]);
+        finalCard.setColor(matchCardColor(wrap));
         return finalCard;
 
     }
@@ -201,7 +208,7 @@ public class Controller {
      * @param symbol
      * @return
      */
-    public String[] matchCard(Mat symbol){
+    public String[] matchCardSymbol(Mat symbol){
         /**
          * The symbol with the least diff is returned as the card's symbol.
          */
@@ -224,6 +231,51 @@ public class Controller {
 
         return bestSymbolDiffName.split("_");
 
+    }
+
+    /**
+     * Checks the amount of red, green, purple in the card's pic and returns the color with max
+     * amount of pixels in the pic.
+     * @param wrap
+     * @return
+     */
+    public String matchCardColor(Mat wrap){
+        //The Mat format is bgr so we convert it to hsv to better find the colors.
+        Mat hsv = new Mat();
+        wrap.convertTo(hsv, Imgproc.COLOR_BGR2HSV);
+
+        //Defining the colors boundaries.
+        Boundaries[] colors = {new Boundaries(Card.Color.GREEN),
+                new Boundaries(Card.Color.PURPLE),
+                new Boundaries(Card.Color.RED)};
+
+        //Finding the color with the most pixels found.
+        Mat coloredPixels = new Mat();
+        int foundPixels;
+        int maxPixels = 0;
+        String color = "N/A";
+
+        for (Boundaries b :
+                colors) {
+            Core.inRange(hsv,b.getLowerBoundary(),b.getUpperBoundary(),coloredPixels);
+            foundPixels = getWhitePixles(coloredPixels);
+            if (foundPixels>maxPixels){
+                maxPixels = foundPixels;
+                color = b.getColor();
+            }
+        }
+        mainImgView.setImage(mat2Image(coloredPixels));
+        System.out.println("Max pixels found: " + maxPixels);
+        return color;
+    }
+
+    private int getWhitePixles(Mat mat) {
+        int whitePixels = 0;
+        for(int i=0; i<mat.size().height; i++)
+            for (int j=0; j<mat.size().width; j++)
+                if (mat.get(i,j)[0]==255)
+                    whitePixels++;
+        return whitePixels;
     }
 
     /**
@@ -388,7 +440,7 @@ public class Controller {
     }
 
     public void blurImage() {
-        Imgproc.GaussianBlur(greyedPicture,blurredPicture,new Size(55,55),0);
+        Imgproc.GaussianBlur(greyedPicture,blurredPicture,new Size(85,85),0);
         loadMat(blurredPicture);
     }
     //TODO: make the thresh value more adaptive.

@@ -61,14 +61,14 @@ public class Card {
 
     //Still not sure how and where to use these.
     public static class Color {
-        public static String RED = "Red",GREEN = "Green",PURPLE = "Purple";
+        public static final String RED = "Red",GREEN = "Green",PURPLE = "Purple";
     }
 
     public static class Shape {
-        public static String ELLIPSE = "Ellipse", WAVE = "Wave", DIAMOND = "Diamond";
+        public static final String ELLIPSE = "Ellipse", WAVE = "Wave", DIAMOND = "Diamond";
     }
 
     public static class Filling {
-        public static String FULL = "Full", HOLLOW = "Hollow", STRIPED = "Striped";
+        public static final String FULL = "Full", HOLLOW = "Hollow", STRIPED = "Striped";
     }
 }
