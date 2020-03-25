@@ -251,6 +251,7 @@ public class Controller {
 
         //Finding the color with the most pixels found.
         Mat coloredPixels = new Mat();
+        Mat mask = new Mat();
         int foundPixels;
         int maxPixels = 0;
         String color = "N/A";
@@ -262,9 +263,10 @@ public class Controller {
             if (foundPixels>maxPixels){
                 maxPixels = foundPixels;
                 color = b.getColor();
+                mask = coloredPixels.clone();
             }
         }
-        mainImgView.setImage(mat2Image(coloredPixels));
+        mainImgView.setImage(mat2Image(mask));
         System.out.println("Max pixels found: " + maxPixels);
         return color;
     }

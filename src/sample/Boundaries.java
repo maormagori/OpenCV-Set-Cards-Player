@@ -2,6 +2,10 @@ package sample;
 
 import org.opencv.core.Scalar;
 
+/**
+ * Created BY Maor Magori on 23.3.20. This class represents the color it was given as a parameter
+ * by defining his HSV boundaries.
+ */
 public class Boundaries {
     private Scalar lowerBoundary, upperBoundary;
     private String name;
