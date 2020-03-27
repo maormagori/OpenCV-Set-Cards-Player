@@ -13,14 +13,14 @@ public class Boundaries {
     public Boundaries(String name){
         this.name = name;
         switch (name){
-            case Card.Color.GREEN: lowerBoundary = new Scalar(45,100,20);
-                upperBoundary = new Scalar(65,255,255);
+            case Card.Color.GREEN: lowerBoundary = new Scalar(50,100,20);
+                upperBoundary = new Scalar(70,255,255);
                 break;
-            case Card.Color.PURPLE: lowerBoundary = new Scalar(135,100,20);
-                upperBoundary = new Scalar(150,255,255);
+            case Card.Color.PURPLE: lowerBoundary = new Scalar(130,100,20);
+                upperBoundary = new Scalar(145,255,255);
                 break;
-            case Card.Color.RED: lowerBoundary = new Scalar(175,100,20);
-                upperBoundary = new Scalar(5,255,255);
+            case Card.Color.RED: lowerBoundary = new Scalar(170,100,20);
+                upperBoundary = new Scalar(179,255,255);
                 break;
             default: name = "Wrong color name entered!";
                 break;

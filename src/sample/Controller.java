@@ -3,7 +3,9 @@ package sample;
 
 
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -63,8 +65,6 @@ public class Controller {
             threshedSymbols.put(symbol.getName().split("[.]")[0]
                     ,Imgcodecs.imread(flipSlash(symbol.getAbsolutePath()),Imgcodecs.IMREAD_GRAYSCALE));
         }
-
-
     }
 
     public void buttonPressed() {
@@ -242,7 +242,7 @@ public class Controller {
     public String matchCardColor(Mat wrap){
         //The Mat format is bgr so we convert it to hsv to better find the colors.
         Mat hsv = new Mat();
-        wrap.convertTo(hsv, Imgproc.COLOR_BGR2HSV);
+        Imgproc.cvtColor(wrap,hsv,Imgproc.COLOR_BGR2HSV,0);
 
         //Defining the colors boundaries.
         Boundaries[] colors = {new Boundaries(Card.Color.GREEN),
@@ -260,13 +260,17 @@ public class Controller {
                 colors) {
             Core.inRange(hsv,b.getLowerBoundary(),b.getUpperBoundary(),coloredPixels);
             foundPixels = getWhitePixles(coloredPixels);
+            if (b.getColor() == Card.Color.RED){
+                Core.inRange(hsv,new Scalar(0,100,20),new Scalar(5,255,255),coloredPixels);
+                foundPixels+= getWhitePixles(coloredPixels);
+            }
             if (foundPixels>maxPixels){
                 maxPixels = foundPixels;
                 color = b.getColor();
                 mask = coloredPixels.clone();
             }
         }
-        mainImgView.setImage(mat2Image(mask));
+        //mainImgView.setImage(mat2Image(mask));
         System.out.println("Max pixels found: " + maxPixels);
         return color;
     }
