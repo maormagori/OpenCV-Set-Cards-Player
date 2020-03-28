@@ -489,7 +489,7 @@ public class Controller {
     }
 
     /**
-     * given a threshed image, the methos returns the sum of all the pixels.
+     * given a threshed image, returns the sum of all the pixels.
      * @param mat
      * @return
      */
