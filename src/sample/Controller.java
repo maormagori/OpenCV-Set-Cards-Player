@@ -184,7 +184,7 @@ public class Controller {
             ySum+=p.y;
         }
         center = new Point(xSum/4,ySum/4);
-
+        finalCard.setCenter(center);
         wrap = flattner(picture,cornerPoints,width,height);
 
         symbolsInCard = findSymbolsInCard(wrap);
@@ -270,7 +270,6 @@ public class Controller {
                 mask = coloredPixels.clone();
             }
         }
-        //mainImgView.setImage(mat2Image(mask));
         System.out.println("Max pixels found: " + maxPixels);
         return color;
     }

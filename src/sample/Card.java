@@ -1,6 +1,7 @@
 package sample;
 
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 
 public class Card {
     public String getColor() {
@@ -38,6 +39,16 @@ public class Card {
     private String shape = "Unknown";
     private String filling = "Unknown";
     private int amount;
+
+    public Point getCenter() {
+        return center;
+    }
+
+    public void setCenter(Point center) {
+        this.center = center;
+    }
+
+    private Point center;
     private MatOfPoint contour;
 
     public Card(String c, String s, String f, int a, MatOfPoint contour){
