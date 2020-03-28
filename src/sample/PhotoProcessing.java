@@ -14,7 +14,7 @@ public class PhotoProcessing {
 
     final int SYMBOL_WIDTH = 140;
     final int SYMBOL_HEIGHT = 65;
-    
+
 
     /**
      * Returns a greyed, blurred and threshed image.
@@ -108,7 +108,7 @@ public class PhotoProcessing {
      * @return The frame with the contours drawn in blue
      */
     public Mat drawContours(List<MatOfPoint> contours,Mat frame){
-        Mat imageWithContours = new Mat();
+        Mat imageWithContours = frame.clone();
         Imgproc.drawContours(imageWithContours,contours, -1, new Scalar(255,0,0),15 );
         return imageWithContours;
     }
@@ -177,7 +177,7 @@ public class PhotoProcessing {
      *     See www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
      *     and https://github.com/EdjeElectronics/OpenCV-Playing-Card-Detector/blob/1f8365779f88f7f46634114bf2e35427bc1c00d0/Cards.py#L318
      */
-    public Mat flattner (Mat image, List<Point> pts, double w,double h){
+    private Mat flattner (Mat image, List<Point> pts, double w,double h){
         Point[] rect = new Point[4];
         //we need to find [top left, top right, bottom right, bottom left] in that exact order.
         Point tl,tr,br,bl;
@@ -253,7 +253,7 @@ public class PhotoProcessing {
      * @param wrap
      * @return The bounding rect of each symbol.
      */
-    public List<Mat> findSymbolsInCard (Mat wrap){
+    private List<Mat> findSymbolsInCard (Mat wrap){
         //We grey and thresh the card's image.
         Mat threshedCard = new Mat();
         Mat greyCard =new Mat();
@@ -288,7 +288,7 @@ public class PhotoProcessing {
      * @param symbol
      * @return
      */
-    public String[] matchCardSymbol(Mat symbol, Map<String, Mat> threshedSymbols){
+    private String[] matchCardSymbol(Mat symbol, Map<String, Mat> threshedSymbols){
         String bestSymbolDiffName = "";
         long bestSymbolDiff = Integer.MAX_VALUE;
         long diff;
@@ -318,7 +318,7 @@ public class PhotoProcessing {
      * @param wrap
      * @return The most apparent color in the card.
      */
-    public String matchCardColor(Mat wrap){
+    private String matchCardColor(Mat wrap){
         //The Mat format is bgr so we convert it to hsv to better find the colors.
         Mat hsv = new Mat();
         Imgproc.cvtColor(wrap,hsv,Imgproc.COLOR_BGR2HSV,0);

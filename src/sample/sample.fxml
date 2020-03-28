@@ -12,12 +12,9 @@
    <bottom>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
-            <Button fx:id="loadButton" mnemonicParsing="false" onAction="#buttonPressed" text="Load" />
-            <Button fx:id="greyedButton" mnemonicParsing="false" onAction="#greyImage" text="grey" />
-            <Button fx:id="blurButton" mnemonicParsing="false" onAction="#blurImage" text="blur" />
-            <Button fx:id="threshButton" mnemonicParsing="false" onAction="#threshImage" text="thresh" />
-            <Button fx:id="cardsButton" mnemonicParsing="false" onAction="#findCardsContours" text="cards" />
-            <Button fx:id="processButton" mnemonicParsing="false" onAction="#processContours" text="process" />
+            <Button fx:id="loadButton" mnemonicParsing="false" onAction="#LoadButtonPressed" text="Load" />
+            <Button fx:id="cardsButton" mnemonicParsing="false" onAction="#CardsButtonPressed" text="cards" />
+            <Button fx:id="processButton" mnemonicParsing="false" onAction="#ProcessButtonPressed" text="process" />
          </children>
       </HBox>
    </bottom>
