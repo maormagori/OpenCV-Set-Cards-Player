@@ -65,13 +65,19 @@ public class Controller {
 
 
     public void CardsButtonPressed(ActionEvent actionEvent) {
+        long start, finish;
+        start  = System.nanoTime();
         Mat processedFrame = processor.preProcessFrame(frame);
         cardContours = processor.findCardsContours(processedFrame);
         Mat frameWithCards = processor.drawContours(cardContours,frame);
         loadMat(frameWithCards);
+        finish = System.nanoTime();
+        System.out.println("CardsButtonPressed time elapsed: " + (finish-start)/1000000 + " ms");
     }
 
     public void ProcessButtonPressed(ActionEvent actionEvent) {
+        long start, finish;
+        start  = System.nanoTime();
         List<Card> playingCards = new ArrayList<>();
         for (MatOfPoint cardContour: cardContours){
             playingCards.add(processor.processCardContour(cardContour,frame,threshedSymbols));
@@ -80,6 +86,9 @@ public class Controller {
         for (Card card: playingCards){
             cardInfo.setText(cardInfo.getText() + "\n\n" + card.toString());
         }
+
+        finish = System.nanoTime();
+        System.out.println("ProcessButtonPressed time elapsed: " + (finish-start)/1000000 + " ms");
 
     }
 
