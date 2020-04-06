@@ -11,6 +11,10 @@ public class Card {
     private int amount;
     private Point center;
 
+    public boolean isCardComplete(){
+        return (!color.equals("Unknown") && !shape.equals("Unknown") && amount != 0);
+    }
+
     public MatOfPoint getContour() {
         return contour;
     }

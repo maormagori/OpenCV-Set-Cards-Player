@@ -108,8 +108,12 @@ public class PhotoProcessing {
      * @return The frame with the contours drawn in blue
      */
     public Mat drawContours(List<MatOfPoint> contours,Mat frame){
+        return drawContours(contours,frame,new Scalar(255,0,0));
+    }
+
+    public Mat drawContours(List<MatOfPoint> contours,Mat frame, Scalar color){
         Mat imageWithContours = frame.clone();
-        Imgproc.drawContours(imageWithContours,contours, -1, new Scalar(255,0,0),15 );
+        Imgproc.drawContours(imageWithContours,contours, -1, color,15 );
         return imageWithContours;
     }
 
@@ -158,14 +162,18 @@ public class PhotoProcessing {
         symbolsInCard = findSymbolsInCard(wrap);
 
         //At the moment we dont do anything if the card has more than 3 symbols.
-        if (symbolsInCard.size()>3)
+        if (symbolsInCard.size()>3) {
             System.out.println("Too many symbols in a card!");
+            finalCard.setAmount(0);
+        }
         else
             finalCard.setAmount(symbolsInCard.size());
 
-        String[] symbolAndFilling = matchCardSymbol(symbolsInCard.get(0), threshedSymbols);
-        finalCard.setShape(symbolAndFilling[0]);
-        finalCard.setFilling(symbolAndFilling[1]);
+        if (symbolsInCard.size() != 0){
+            String[] symbolAndFilling = matchCardSymbol(symbolsInCard.get(0), threshedSymbols);
+            finalCard.setShape(symbolAndFilling[0]);
+            finalCard.setFilling(symbolAndFilling[1]);
+        }
         finalCard.setColor(matchCardColor(wrap));
         return finalCard;
 

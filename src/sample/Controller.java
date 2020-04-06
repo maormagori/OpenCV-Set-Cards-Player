@@ -4,6 +4,7 @@ package sample;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -37,6 +38,11 @@ public class Controller {
     PhotoProcessing processor = new PhotoProcessing();
     Map<String, Mat> threshedSymbols;
     List<MatOfPoint> cardContours = new ArrayList<>();
+    List<Card> playingCards;
+    CardsTable table;
+    Mat frameWithCards;
+    Mat frameWithProcessedCards;
+    Image theImage;
 
 
     /**
@@ -56,9 +62,9 @@ public class Controller {
             return;
         String path = flipSlash(image.getAbsolutePath());
         frame = Imgcodecs.imread(path);
-        Image theFuckingImage = mat2Image(frame);
+        theImage = mat2Image(frame);
 
-        mainImgView.setImage(theFuckingImage);
+        mainImgView.setImage(theImage);
     }
 
 
@@ -69,7 +75,7 @@ public class Controller {
         start  = System.nanoTime();
         Mat processedFrame = processor.preProcessFrame(frame);
         cardContours = processor.findCardsContours(processedFrame);
-        Mat frameWithCards = processor.drawContours(cardContours,frame);
+        frameWithCards = processor.drawContours(cardContours,frame);
         loadMat(frameWithCards);
         finish = System.nanoTime();
         System.out.println("CardsButtonPressed time elapsed: " + (finish-start)/1000000 + " ms");
@@ -78,15 +84,19 @@ public class Controller {
     public void ProcessButtonPressed(ActionEvent actionEvent) {
         long start, finish;
         start  = System.nanoTime();
-        List<Card> playingCards = new ArrayList<>();
+        playingCards = new ArrayList<>();
+        List <MatOfPoint> unknownCards = new ArrayList<>();
         for (MatOfPoint cardContour: cardContours){
-            playingCards.add(processor.processCardContour(cardContour,frame,threshedSymbols));
+            Card card = processor.processCardContour(cardContour,frame,threshedSymbols);
+            if (card.isCardComplete()) {
+                playingCards.add(card);
+            }
+            else
+                unknownCards.add(card.getContour());
         }
 
-        for (Card card: playingCards){
-            cardInfo.setText(cardInfo.getText() + "\n\n" + card.toString());
-        }
-
+        frameWithProcessedCards = processor.drawContours(unknownCards,frameWithCards,new Scalar(0,0,255));
+        loadMat(frameWithProcessedCards);
         finish = System.nanoTime();
         System.out.println("ProcessButtonPressed time elapsed: " + (finish-start)/1000000 + " ms");
 
@@ -160,5 +170,45 @@ public class Controller {
             threshedSymbols.put(symbol.getName().split("[.]")[0]
                     ,Imgcodecs.imread(flipSlash(symbol.getAbsolutePath()),Imgcodecs.IMREAD_GRAYSCALE));
         }
+    }
+
+    public void setsButtonPressed(ActionEvent actionEvent) {
+        cardInfo.setText("");
+        table = new CardsTable(playingCards);
+        CardsTable.Set set = table.findSet();
+        if (set == null)
+            cardInfo.setText("No Set Found! :(");
+        else loadMat(processor.drawContours(set.getContours(),frame, new Scalar(0,255,0)));
+    }
+
+    public void imageViewClicked(MouseEvent mouseEvent) {
+        System.out.println(String.format("(%f,%f)", mouseEvent.getX(),mouseEvent.getY()));
+        if (playingCards ==null) {
+            cardInfo.setText("Cards not been processed yet!");
+
+        }
+        double aspectRatio = theImage.getWidth() / theImage.getHeight();
+        double realWidth = Math.min(mainImgView.getFitWidth(), mainImgView.getFitHeight() * aspectRatio);
+        double realHeight = Math.min(mainImgView.getFitHeight(), mainImgView.getFitWidth() / aspectRatio);
+        Point p = new Point(frame.cols()/(realWidth/mouseEvent.getX())
+                ,frame.rows()/(realHeight/mouseEvent.getY()));
+        printClosestCard(p);
+
+    }
+
+    private void printClosestCard(Point p) {
+        double minDistance = Double.MAX_VALUE;
+        Card closestCard = null;
+        double distance;
+        for (Card c :
+                playingCards) {
+            distance = Math.sqrt((p.x - c.getCenter().x) + (p.y - c.getCenter().y));
+            if (distance<minDistance){
+                minDistance = distance;
+                closestCard = c;
+            }
+        }
+
+        cardInfo.setText(closestCard.toString());
     }
 }

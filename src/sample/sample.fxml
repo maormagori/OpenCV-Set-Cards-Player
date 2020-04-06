@@ -7,14 +7,15 @@
 
 <BorderPane fx:id="borderpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <center>
-      <ImageView fx:id="mainImgView" fitHeight="800.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+      <ImageView fx:id="mainImgView" fitHeight="800.0" fitWidth="600.0" onMouseClicked="#imageViewClicked" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
    </center>
    <bottom>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
             <Button fx:id="loadButton" mnemonicParsing="false" onAction="#LoadButtonPressed" text="Load" />
             <Button fx:id="cardsButton" mnemonicParsing="false" onAction="#CardsButtonPressed" text="cards" />
-            <Button fx:id="processButton" mnemonicParsing="false" onAction="#ProcessButtonPressed" text="process" />
+            <Button fx:id="processButton" mnemonicParsing="false" onAction="#ProcessButtonPressed" text="Process" />
+            <Button fx:id="setsButton" mnemonicParsing="false" onAction="#setsButtonPressed" text="Find set" />
          </children>
       </HBox>
    </bottom>
