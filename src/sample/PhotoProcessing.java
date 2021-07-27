@@ -2,6 +2,8 @@ package sample;
 
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+import sample.models.Boundaries;
+import sample.models.Card;
 
 import java.util.*;
 

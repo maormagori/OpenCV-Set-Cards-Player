@@ -1,4 +1,4 @@
-package sample;
+package sample.models;
 
 import org.opencv.core.Scalar;
 

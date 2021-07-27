@@ -23,6 +23,8 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import sample.models.Card;
+import sample.models.CardsTable;
 
 public class Controller {
 
